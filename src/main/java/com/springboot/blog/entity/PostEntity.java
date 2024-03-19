@@ -1,11 +1,13 @@
 package com.springboot.blog.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
+import java.util.HashSet;
+import java.util.Set;
+
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -24,4 +26,11 @@ public class PostEntity {
 
     @Column(name = "content", nullable = false)
     private String content;
+
+    @OneToMany(mappedBy = "postEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CommentEntity> comments = new HashSet<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private CategoryEntity category;
 }
