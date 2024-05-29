@@ -1,11 +1,13 @@
 package com.springboot.blog.controller;
 
+import com.springboot.blog.entity.PostEntity;
 import com.springboot.blog.payload.PostDto;
 import com.springboot.blog.payload.PostResponse;
 import com.springboot.blog.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,10 +15,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/posts")
+@Tag(
+        name = "CRUD REST APIs for Post Resource"
+)
 public class PostController {
 
     final private PostService postService;
@@ -39,12 +45,17 @@ public class PostController {
     )
     // create blog post rest api
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
+    @PostMapping()
     public ResponseEntity<PostDto> createPost(@Valid @RequestBody PostDto postDto){
         return new ResponseEntity<>(postService.createPost(postDto), HttpStatus.CREATED);
     }
 
-    @GetMapping
+    @GetMapping("/search")
+    public ResponseEntity<List<PostEntity>> searchProducts(@RequestParam("query") String query){
+        return ResponseEntity.ok(postService.searchPosts(query));
+    }
+
+    @GetMapping()
     public PostResponse getAllPosts(
             @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
@@ -97,8 +108,12 @@ public class PostController {
         return new ResponseEntity<>("Post entity deleted successfully", HttpStatus.OK);
     }
 
-
-
-
+    // Build Get Posts by Category REST API
+    // http://localhost:8080/api/posts/category/3
+    @GetMapping("/category/{id}")
+    public ResponseEntity<List<PostDto>> getPostsByCategory(@PathVariable("id") Long categoryId){
+        List<PostDto> postDtos = postService.getPostsByCategory(categoryId);
+        return ResponseEntity.ok(postDtos);
+    }
 
 }

@@ -1,8 +1,10 @@
 package com.springboot.blog.service.impl;
+import com.springboot.blog.entity.CategoryEntity;
 import com.springboot.blog.entity.PostEntity;
 import com.springboot.blog.exception.ResourceNotFoundException;
 import com.springboot.blog.payload.PostDto;
 import com.springboot.blog.payload.PostResponse;
+import com.springboot.blog.repository.CategoryRepository;
 import com.springboot.blog.repository.PostRepository;
 import com.springboot.blog.service.PostService;
 import org.modelmapper.ModelMapper;
@@ -22,10 +24,13 @@ public class PostServiceImpl implements PostService {
 
     final private ModelMapper modelMapper;
 
+    final private CategoryRepository categoryRepository;
+
     @Autowired
-    public PostServiceImpl(PostRepository postRepository, ModelMapper modelMapper) {
+    public PostServiceImpl(PostRepository postRepository, ModelMapper modelMapper, CategoryRepository categoryRepository) {
         this.postRepository = postRepository;
         this.modelMapper = modelMapper;
+        this.categoryRepository = categoryRepository;
     }
 
 
@@ -89,6 +94,24 @@ public class PostServiceImpl implements PostService {
     public void deletePostById(Long id) {
         PostEntity postEntity = postRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("PostEntity", "id", id));
         postRepository.delete(postEntity);
+    }
+
+    @Override
+    public List<PostDto> getPostsByCategory(Long categoryId) {
+
+        CategoryEntity categoryEntity = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", "id", categoryId));
+
+        List<PostEntity> posts = postRepository.findByCategoryId(categoryId);
+
+        return posts.stream().map((post) -> mapToDTO(post))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PostEntity> searchPosts(String query) {
+        List<PostEntity> posts = postRepository.searchPosts(query);
+        return posts;
     }
 
     // convert Entity int DTO
